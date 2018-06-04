@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements Camera.PreviewCal
                 image.compressToJpeg(new Rect(0, 0, size.width, size.height), 80, stream);
 
                 Bitmap bmp = BitmapFactory.decodeByteArray(stream.toByteArray(), 0, stream.size());
-
+                //需要选择bmp
                 cameraIv.setImageBitmap(bmp);
 
                 stream.close();
