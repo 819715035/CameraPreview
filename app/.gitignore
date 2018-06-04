@@ -1,1 +1,9 @@
 /build
+.idea/
+*.iml
+*.apk
+*.ap_
+*.dex
+bin/
+gen/
+*.log
