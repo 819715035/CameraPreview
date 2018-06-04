@@ -2,7 +2,12 @@ package com.ys.yoosir.camerapreview;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,23 +17,27 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+import android.widget.ImageView;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import static android.hardware.Camera.getCameraInfo;
 import static android.hardware.Camera.getNumberOfCameras;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Camera.PreviewCallback{
 
     private final String TAG = MainActivity.this.getClass().getSimpleName();
 
     private Camera camera;
     private boolean isPreview = false;
+    private ImageView cameraIv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        cameraIv = (ImageView) findViewById(R.id.camera_iv);
         SurfaceView mSurfaceView = (SurfaceView) findViewById(R.id.surface_view);
         // 获得 SurfaceHolder 对象
         SurfaceHolder mSurfaceHolder = mSurfaceView.getHolder();
@@ -83,10 +92,13 @@ public class MainActivity extends AppCompatActivity {
                 camera.setPreviewDisplay(surfaceHolder);//通过SurfaceView显示取景画面
                 camera.startPreview();//开始预览
                 isPreview = true;//设置是否预览参数为真
+                //实时数据帧
+                camera.setPreviewCallback(MainActivity.this);
             } catch (IOException e) {
                 Log.e(TAG, e.toString());
             }
         }
+
 
         /**
          *  在 Surface 格式 和 大小发生变化时会立即调用，可以在这个方法中更新 Surface
@@ -114,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
 
     /**
      * 设置 摄像头的角度
@@ -156,5 +169,27 @@ public class MainActivity extends AppCompatActivity {
             result = (info.orientation - degrees + 360) % 360;
         }
         camera.setDisplayOrientation(result);
+    }
+
+
+    //实时数据帧
+    @Override
+    public void onPreviewFrame(byte[] bytes, Camera camera) {
+        Camera.Size size = camera.getParameters().getPreviewSize();
+        try{
+            YuvImage image = new YuvImage(bytes, ImageFormat.NV21, size.width, size.height, null);
+            if(image!=null){
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                image.compressToJpeg(new Rect(0, 0, size.width, size.height), 80, stream);
+
+                Bitmap bmp = BitmapFactory.decodeByteArray(stream.toByteArray(), 0, stream.size());
+
+                cameraIv.setImageBitmap(bmp);
+
+                stream.close();
+            }
+        }catch(Exception ex){
+            Log.e("Sys","Error:"+ex.getMessage());
+        }
     }
 }
