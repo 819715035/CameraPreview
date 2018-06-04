@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements Camera.PreviewCal
                 camera.setPreviewDisplay(surfaceHolder);//通过SurfaceView显示取景画面
                 camera.startPreview();//开始预览
                 isPreview = true;//设置是否预览参数为真
-                //实时数据帧
+                //实时数据帧监听
                 camera.setPreviewCallback(MainActivity.this);
             } catch (IOException e) {
                 Log.e(TAG, e.toString());
